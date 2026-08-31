@@ -158,8 +158,8 @@ static inline void drawFlatColumn(const FlatFragment flatFrag) noexcept {
 
         // Get the source pixel (ARGB1555 format).
         // Note that the flat texture is always expected to be 64x64, hence we can wraparound with a simple bitwise AND:
-        const uint32_t curSrcXInt = (uint32_t) intersectX & 63;
-        const uint32_t curSrcYInt = (uint32_t) intersectY & 63;
+        const uint32_t curSrcXInt = (uint32_t)(int32_t) intersectX & 63;
+        const uint32_t curSrcYInt = (uint32_t)(int32_t) intersectY & 63;
         const uint16_t srcPixelARGB1555 = pSrcPixels[curSrcYInt * 64 + curSrcXInt];
 
         // Extract RGB components and shift such that the maximum value is 255 instead of 31.
