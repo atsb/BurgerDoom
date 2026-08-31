@@ -8,8 +8,6 @@ I had the privilege in talking to her about many of the technical 3DO'isms and u
 
 ## About This Project
 
-# Note: Currently there is a texture issue on ARM cpus, will be fixing it.
-
 BURGER DOOM is a project derived from the [3DO DOOM source code release by Rebecca Ann Heineman](https://github.com/Olde-Skuul/doom3do) and the Phoenix Doom project. The aim of this project is to allow the original 3DO version of DOOM to be played on modern operating systems.
 
 ## What makes this different from PheonixDoom?
