@@ -1,36 +1,43 @@
-# BURGER DOOM
+# Burger Doom
 
-A backport & remaster of 3DO DOOM for Windows, MacOS and Linux.
+## What is it?
+Burger Doom is (now) an SDL3 direct modern source port, straight from the original source code of the 3DO Version.
 
-## R.I.P Becky
+This means a few things.
 
-I had the privilege in talking to her about many of the technical 3DO'isms and unique aspects about the system, that would, inevitably, lead to a better port here.  The world has lost another great developer and person.
+1. Demo Compatibility - yes, never before seen demos have perfect playback, no desyncs.
+2. Absolute Faithfulness - Think 'Chocolate Doom for 3DO DOOM'.  Everything preserved, EXACTLY as it was.
+3. Data is included.  Rebecca released the full package back in 2014.  I consider that a data release as well, so the REZFILE and all accompanying files are included.
 
-## About This Project
+## Why is the screen so small?
+Because 3DO Doom had a smaller window by default.  And no, the M2 cheat code isn't possible without a gamepad (faithfulness).
 
-BURGER DOOM is a project derived from the [3DO DOOM source code release by Rebecca Ann Heineman](https://github.com/Olde-Skuul/doom3do) and the Phoenix Doom project. The aim of this project is to allow the original 3DO version of DOOM to be played on modern operating systems.
+## Why no hi-res?
+Because 3DO Doom has a very different rendering system.  VERY different.  In this port, I have simulated 'as much' as possible, the CCB, CEL, PLUT, CLIO and Madam (both worker threads) and the entire rendering pipeline to be 'as faithful' as humanly possible.  This was needed for demo compatibility.  The CCBs can only hand off a certain amount of data to the CEL, higher resolutions mean more data.  This would crash the game, the only way around this would be to rip out the renderer and slap SDL3 on it without caring for faithfulness.  NO thanks.  You'll see the framerate go down a bit in complex maps too (thanks to my simulation).
 
-## What makes this different from PheonixDoom?
+## What are the controls?
+Keyboard:
+E = Use
+Space = Shoot
+Shift = Run
+Tab = Automap
+Restart after Death = Also Tab (faithful)
+Mouse support is also available (but disabled for demo recording, only keyboard or only gamepad).
 
-Well for one, it is actually playable :)
+Gamepads use the typical layout as best as possible.  The game is constrained by its limited controls due to the 3DO originally having a very simple gamepad.  Adding more controls would damage faithfulness and demo compatibility.
 
-PheonixDoom had so many issues..  it was a quick and dirty port.  It was not simulating the 3DO internal ticrate, obeying 3DO logic or even bothering to ensure it was a playable experience.
+## Can I record demos?
+Yes you can :) and I've done it plenty of times during testing.  3DO DOOM demos are now a reality.  But demo recording is only for Gamepads or Keyboards as the mouse code doesn't go through the 'Pad' controls, which would cause desyncs.  But just like Vanilla 3DO Doom, demo recording is capped at 15 frames per second.
 
-What I've done is:
+## Just how faithful is it?
+As faithful as Chocolate Doom is for PC Doom.
 
-Wrote a 3DO internal ticrate of 60hz and according to 3DO specs, most games will auto-clamp to a 28/30hz tic inside of the 3DO's tic.  So this means logic is 60/2 and this is why the 3DO Doom logic is inherently 'faster', to make up for the slower tic..  otherwise it'll be too fast since we need to cleanly divide 60.  Clamping at 35 would result in logic mismatch.
+## What differences are there?
+Projectiles are faster, enemy RNG is slightly 'dumber' because it was designed for a gamepad without strafing.  Limits are 'vastly' more reduced than Vanilla Doom (by roughly half).
 
-The 3DO itself never clamped tics itself, it would run strictly on a 1 tick per frame, thus keeping itself synched every new frame, if we did it like this on PC, it would run at 60fps and so would all game logic.  It is 
-one of the few things that cannot be 'exactly' emulated.
+## Are shaders included?
+Yes!  Due to the low resolution, I implemented SDL 3.4 SPIR-V shader support and have one included (a crt filter).
 
-Fixed doomguy's face!  the 3DO version uses a 16bit integer calculation for doomguy's facial expressions, not 32bit.  So this was restructured.
+## Why Burger Doom?
+Because 'Burger Becky' was the original programmer of the 3DO version.  It uses her BurgerLib2, and is a way of crediting her.
 
-Fixed all internal logic to cleanly divide by 3DO tic to game tic, so doors, plats, ceilings, etc..  will all run at the tic they were designed for.
-
-Experimental PWAD loading (CRASHES DOES NOT WORK) but I did get some loading working, however it was fighting against the REZFILE.
-
-You may experience a slightly 'faster' or 'slower' game than traditional DOOM, and that's because we're simulating the 3DO here.  It'll randomly flip between 28/30 tics as that is what most games did..  so the pistol will be a bit slower, but doors will be slightly faster..  gamers would have noticed this too, if the 3DO ran Doom at this framerate.
-
-All very fun and I enjoyed it!
-
--Gibbon

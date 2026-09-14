@@ -1,2 +1,0 @@
-Where this code came from:
-http://sed.free.fr/aifc2wav.html
