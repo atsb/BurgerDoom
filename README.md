@@ -9,6 +9,11 @@ This means a few things.
 2. Absolute Faithfulness - Think 'Chocolate Doom for 3DO DOOM'.  Everything preserved, EXACTLY as it was.
 3. Data is included.  Rebecca released the full package back in 2014.  I consider that a data release as well, so the REZFILE and all accompanying files are included.
 
+I have added a few things:
+1. PREZFILE support (for user created content)
+2. MIDI support (WildMidi)
+3. Mouse and Gamepad (SDL3) support
+
 ## Why is the screen so small?
 Because 3DO Doom had a smaller window by default.  And no, the M2 cheat code isn't possible without a gamepad (faithfulness).
 
