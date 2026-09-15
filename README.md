@@ -14,6 +14,10 @@ I have added a few things:
 2. MIDI support (WildMidi)
 3. Mouse and Gamepad (SDL3) support
 
+## Any custom content?
+YES!  PANDORA 2 is the first :)
+Get it here: https://atsb.github.io/Pandora2/
+
 ## Why is the screen so small?
 Because 3DO Doom had a smaller window by default.  And no, the M2 cheat code isn't possible without a gamepad (faithfulness).
 
