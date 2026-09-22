@@ -14,6 +14,9 @@ I have added a few things:
 2. MIDI support (WildMidi)
 3. Mouse and Gamepad (SDL3) support
 
+## What License is it under?
+Same as Rebecca released the original Doom 3DO under.  MIT.
+
 ## Any custom content?
 YES!  PANDORA 2 is the first :)
 Get it here: https://atsb.github.io/Pandora2/
