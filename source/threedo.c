@@ -32,7 +32,6 @@ static Fixed SkyScales[6] = {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <math.h>
 #include <limits.h>
 #ifndef PATH_MAX
@@ -40,7 +39,17 @@ static Fixed SkyScales[6] = {
 #endif
 #include <time.h>
 
-
+#if defined(_WIN32)
+#include <string.h>
+#ifndef strcasecmp
+#define strcasecmp _stricmp
+#endif
+#ifndef strncasecmp
+#define strncasecmp _strnicmp
+#endif
+#else
+#include <strings.h>
+#endif
 
 /*
  * Host state used by the 3DO compatibility layer.
