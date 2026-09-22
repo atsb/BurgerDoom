@@ -48,7 +48,7 @@ As faithful as Chocolate Doom is for PC Doom.
 Projectiles are faster, enemy RNG is slightly 'dumber' because it was designed for a gamepad without strafing.  Limits are 'vastly' more reduced than Vanilla Doom (by roughly half).
 
 ## Are shaders included?
-Yes!  Due to the low resolution, I implemented SDL 3.4 SPIR-V shader support and have one included (a crt filter).
+Yes!  Due to the low resolution, I implemented GLSL (.frag .vert) shader support (a crt filter).
 
 ## Why Burger Doom?
 Because 'Burger Becky' was the original programmer of the 3DO version.  It uses her BurgerLib2, and is a way of crediting her.
