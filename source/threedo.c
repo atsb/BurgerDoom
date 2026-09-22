@@ -4268,19 +4268,19 @@ static void D3DO_RunStartupSequence(void)
 }
 
 #if SDL_VERSION_ATLEAST(3,4,0)
-static int D3DO_CRTShaderPath(char *path, size_t pathSize)
+static int D3DO_CRTShaderPath(const char *filename, char *path, size_t pathSize)
 {
     const char *basePath;
     FILE *file;
 
-    if (!path || pathSize == 0u)
+    if (!filename || !path || pathSize == 0u)
         return 0;
 
     basePath = SDL_GetBasePath();
     if (!basePath)
         return 0;
 
-    snprintf(path, pathSize, "%sdoom3do.spv", basePath);
+    snprintf(path, pathSize, "%s%s", basePath, filename);
     file = fopen(path, "rb");
     if (!file)
         return 0;
@@ -4288,13 +4288,25 @@ static int D3DO_CRTShaderPath(char *path, size_t pathSize)
     return 1;
 }
 
+static int D3DO_CRTShaderFilesAvailable(void)
+{
+    char path[PATH_MAX];
+
+    if (D3DO_CRTShaderPath("doom3do.spv", path, sizeof(path)))
+        return 1;
+    return D3DO_CRTShaderPath("doom3do.dxil", path, sizeof(path));
+}
+
 static int D3DO_LoadCRTFilter(void)
 {
     char path[PATH_MAX];
+    const char *shaderFilename = NULL;
+    const char *driver;
     FILE *file;
     long fileSize;
     Byte *shaderData;
     SDL_GPUShaderFormat formats;
+    SDL_GPUShaderFormat shaderFormat = 0;
     SDL_GPUShaderCreateInfo shaderInfo;
     SDL_GPURenderStateCreateInfo stateInfo;
     struct {
@@ -4319,16 +4331,42 @@ static int D3DO_LoadCRTFilter(void)
         float padding0;
     } uniforms;
 
-    if (!D3DO_CRTShaderPath(path, sizeof(path)))
-        return 0;
-
     gGPUDevice = SDL_GetGPURendererDevice(gRenderer);
     if (!gGPUDevice)
         return 0;
 
     formats = SDL_GetGPUShaderFormats(gGPUDevice);
-    if (!(formats & SDL_GPU_SHADERFORMAT_SPIRV)) {
-        SDL_Log("DOOM3DO: GPU device does not support SPIR-V: %s", SDL_GetError());
+    driver = SDL_GetGPUDeviceDriver(gGPUDevice);
+
+    if (driver && strcmp(driver, "direct3d12") == 0) {
+        if ((formats & SDL_GPU_SHADERFORMAT_DXIL) &&
+            D3DO_CRTShaderPath("doom3do.dxil", path, sizeof(path))) {
+            shaderFilename = "doom3do.dxil";
+            shaderFormat = SDL_GPU_SHADERFORMAT_DXIL;
+        }
+    } else if (driver && strcmp(driver, "vulkan") == 0) {
+        if ((formats & SDL_GPU_SHADERFORMAT_SPIRV) &&
+            D3DO_CRTShaderPath("doom3do.spv", path, sizeof(path))) {
+            shaderFilename = "doom3do.spv";
+            shaderFormat = SDL_GPU_SHADERFORMAT_SPIRV;
+        }
+    }
+
+    if (!shaderFilename) {
+        if ((formats & SDL_GPU_SHADERFORMAT_SPIRV) &&
+            D3DO_CRTShaderPath("doom3do.spv", path, sizeof(path))) {
+            shaderFilename = "doom3do.spv";
+            shaderFormat = SDL_GPU_SHADERFORMAT_SPIRV;
+        } else if ((formats & SDL_GPU_SHADERFORMAT_DXIL) &&
+                   D3DO_CRTShaderPath("doom3do.dxil", path, sizeof(path))) {
+            shaderFilename = "doom3do.dxil";
+            shaderFormat = SDL_GPU_SHADERFORMAT_DXIL;
+        }
+    }
+
+    if (!shaderFilename) {
+        SDL_Log("DOOM3DO: no compatible CRT shader for GPU backend '%s'",
+                driver ? driver : "unknown");
         gGPUDevice = NULL;
         return 0;
     }
@@ -4345,7 +4383,9 @@ static int D3DO_LoadCRTFilter(void)
         return 0;
     }
     fileSize = ftell(file);
-    if (fileSize <= 0 || (fileSize & 3) != 0 || fseek(file, 0, SEEK_SET) != 0) {
+    if (fileSize <= 0 ||
+        (shaderFormat == SDL_GPU_SHADERFORMAT_SPIRV && (fileSize & 3) != 0) ||
+        fseek(file, 0, SEEK_SET) != 0) {
         fclose(file);
         gGPUDevice = NULL;
         return 0;
@@ -4369,7 +4409,7 @@ static int D3DO_LoadCRTFilter(void)
     shaderInfo.code = shaderData;
     shaderInfo.code_size = (size_t)fileSize;
     shaderInfo.entrypoint = "main";
-    shaderInfo.format = SDL_GPU_SHADERFORMAT_SPIRV;
+    shaderInfo.format = shaderFormat;
     shaderInfo.stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
     shaderInfo.num_samplers = 1;
     shaderInfo.num_uniform_buffers = 1;
@@ -4377,7 +4417,8 @@ static int D3DO_LoadCRTFilter(void)
     gCRTShader = SDL_CreateGPUShader(gGPUDevice, &shaderInfo);
     free(shaderData);
     if (!gCRTShader) {
-        SDL_Log("DOOM3DO: SDL_CreateGPUShader(CRT) failed: %s", SDL_GetError());
+        SDL_Log("DOOM3DO: SDL_CreateGPUShader(CRT) failed for %s: %s",
+                shaderFilename, SDL_GetError());
         gGPUDevice = NULL;
         return 0;
     }
@@ -4399,15 +4440,11 @@ static int D3DO_LoadCRTFilter(void)
         return 0;
     }
 
-    /* SDL 3.4's GPU renderer already binds SDL_RenderTexture()'s source
-     * texture to fragment sampler slot 0. Our shader follows the same
-     * set 2 / binding 0 convention as SDL's own CRT effect test. */
     uniforms.resolutionX = (float)DOOM3DO_WIDTH;
     uniforms.resolutionY = (float)DOOM3DO_HEIGHT;
     uniforms.sourceInvWidth = 1.0f / (float)DOOM3DO_WIDTH;
     uniforms.sourceInvHeight = 1.0f / (float)DOOM3DO_HEIGHT;
 
-    /* Tuned for a restrained 1990s CRT look without obscuring DOOM's pixels. */
     uniforms.scanlineStrength = 0.34f;
     uniforms.scanlineSharpness = 1.65f;
     uniforms.maskStrength = 0.18f;
@@ -4431,7 +4468,8 @@ static int D3DO_LoadCRTFilter(void)
     }
 
     gCRTFilterEnabled = true;
-    SDL_Log("DOOM3DO: CRT GPU filter enabled using SDL 3.4 SPIR-V render state");
+    SDL_Log("DOOM3DO: CRT GPU filter enabled using %s render state",
+            shaderFormat == SDL_GPU_SHADERFORMAT_DXIL ? "D3D12 DXIL" : "Vulkan SPIR-V");
     return 1;
 }
 
@@ -4660,8 +4698,7 @@ void InitTools(void)
     {
         int useCRTFilter = 0;
 #if SDL_VERSION_ATLEAST(3,4,0)
-        char shaderPath[PATH_MAX];
-        useCRTFilter = D3DO_CRTShaderPath(shaderPath, sizeof(shaderPath));
+        useCRTFilter = D3DO_CRTShaderFilesAvailable();
 #endif
 #if SDL_VERSION_ATLEAST(3,4,0)
         if (useCRTFilter)
